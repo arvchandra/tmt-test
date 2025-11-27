@@ -1,3 +1,4 @@
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.views import APIView
@@ -17,9 +18,16 @@ from interview.inventory.serializers import (
 )
 
 
+# Custom pagination class (to define page size as 3 items)
+class CustomInventoryPagination(LimitOffsetPagination):
+    default_limit = 3 
+    max_limit = 3
+
+
 class InventoryListCreateView(APIView):
     queryset = Inventory.objects.all()
     serializer_class = InventorySerializer
+    pagination_class = CustomInventoryPagination
 
     def post(self, request: Request, *args, **kwargs) -> Response:
         try:
@@ -37,9 +45,15 @@ class InventoryListCreateView(APIView):
         return Response(serializer.data, status=201)
 
     def get(self, request: Request, *args, **kwargs) -> Response:
-        serializer = self.serializer_class(self.get_queryset(), many=True)
+        # Apply pagination
+        paginator = self.pagination_class()
+        paginated_queryset = paginator.paginate_queryset(self.get_queryset(), request)
 
-        return Response(serializer.data, status=200)
+        # Serialize the paginated inventory list.
+        serializer = InventorySerializer(paginated_queryset, many=True)
+
+        # Return paginated results
+        return paginator.get_paginated_response(serializer.data)
 
     def get_queryset(self):
         return self.queryset.all()
