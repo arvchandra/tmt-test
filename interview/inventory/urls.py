@@ -1,5 +1,6 @@
 from django.urls import path
 from interview.inventory.views import (
+    InventoryDateFilterAPIView,
     InventoryLanguageListCreateView,
     InventoryLanguageRetrieveUpdateDestroyView,
     InventoryListCreateView,
@@ -38,6 +39,7 @@ urlpatterns = [
         InventoryLanguageListCreateView.as_view(),
         name="inventory-languages-list",
     ),
+    path("date-filter/", InventoryDateFilterAPIView.as_view(), name="inventory-date-filter"),
     path("tags/", InventoryTagListCreateView.as_view(), name="inventory-tags-list"),
     path("types/", InventoryTypeListCreateView.as_view(), name="inventory-types-list"),
     path("", InventoryListCreateView.as_view(), name="inventory-list"),
