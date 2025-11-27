@@ -1,3 +1,6 @@
+from datetime import datetime
+
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.views import APIView
@@ -231,3 +234,40 @@ class InventoryTypeRetrieveUpdateDestroyView(APIView):
 
     def get_queryset(self, **kwargs):
         return self.queryset.get(**kwargs)
+
+
+# Challenge 1 Inventory Dates:
+# Create a view that lists inventory items created after a certain day.
+
+class InventoryDateFilterAPIView(APIView):
+    queryset = Inventory.objects.all()
+    serializer_class = InventorySerializer
+
+    def get(self, request: Request, *args, **kwargs) -> Response:
+        serializer = self.serializer_class(self.get_queryset(), many=True)
+
+        return Response(serializer.data, status=200)
+
+    def get_queryset(self):
+        # Retrieve the 'created_after' filter from query parameters
+        created_after = self.request.query_params.get('created_after', None)
+
+        # Validate that query parameter was provided
+        if created_after is None:
+            raise ValidationError({
+                'created_after': 'This is a required query parameter.'
+            })
+        
+        # Convert the query parameter to a date for date comparison.
+        # Validate the date format.
+        try:
+            datetime.strptime(created_after, "%Y-%m-%d")
+        except (TypeError, ValueError):
+            raise ValidationError({
+                'created_after': 'The created_after parameter must be in the format %Y-%m-%d (e.g. 2025-11-27)'
+            })
+        
+        # Retrieve inventory items created after the provided date
+        items_created_after_date = Inventory.objects.filter(created_at__date__gt=created_after)
+        
+        return items_created_after_date
