@@ -39,4 +39,3 @@ class DeactivateOrderView(APIView):
         order.save()
 
         return Response({'message': f'Order with id:{order.id} was deactivated.'}, status=status.HTTP_200_OK)
-    
